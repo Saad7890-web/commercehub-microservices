@@ -1,8 +1,0 @@
-schema: schema.graphql
-
-models:
-  Account:
-    model: github.com/saad7890-web/commercehub-micro/graphql.Account
-    fields:
-      orders:
-        resolver: true
