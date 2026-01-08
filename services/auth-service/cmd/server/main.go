@@ -2,25 +2,33 @@ package main
 
 import (
 	"log"
-	"net"
+	"os"
+	"os/signal"
+	"syscall"
 
-	"google.golang.org/grpc"
+	"commercehub/services/auth/internal/config"
+	"commercehub/services/auth/internal/infrastructure/postgres"
+	authgrpc "commercehub/services/auth/internal/transport/grpc"
 )
 
-const (
-	grpcPort = ":50051"
-)
+func main() {
+	cfg := config.Load()
 
-func main(){
-	lis, err := net.Listen("tcp", grpcPort)
-	if err != nil {
-		log.Fatalf("failed to listen on %s: %v", grpcPort, err)
-	}
+	log.Printf("starting %s", cfg.ServiceName)
 
-	grpcServer :=grpc.NewServer()
-	log.Printf("Auth Service gRPC server running on %s", grpcPort)
+	dbPool := postgres.NewPool(cfg.DBURL)
+	defer dbPool.Close()
 
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("failed to serve gRPC server: %v", err)
-	}
+	grpcServer := authgrpc.New(cfg.GRPCPort)
+
+	go grpcServer.Start()
+
+	shutdown := make(chan os.Signal, 1)
+	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
+
+	<-shutdown
+	log.Println("shutdown signal received")
+
+	grpcServer.Stop()
+	log.Println("auth service stopped gracefully")
 }
