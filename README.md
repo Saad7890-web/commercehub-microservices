@@ -13,13 +13,11 @@ The system is designed following real-world industry standards:
 ## Services
 
 - **Auth Service**
-
   - User authentication and authorization
   - Token issuance and validation
   - Role-based access control
 
 - **Product Service**
-
   - Product and catalog management
   - Pricing and stock handling
 
