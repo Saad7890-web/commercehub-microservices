@@ -6,6 +6,7 @@ import (
 	"auth-service/internal/config"
 	grpcDelivery "auth-service/internal/delivery/grpc"
 	"auth-service/internal/infrastructure/postgres"
+	"auth-service/internal/usecase"
 
 	"github.com/joho/godotenv"
 )
@@ -25,8 +26,9 @@ func main() {
 		DBName:   cfg.DBName,
 	})
 
-	_= pg
+	userRepo := postgres.NewUserRepository(pg.DB)
+	authUC := usecase.NewAuthService(userRepo)
 
-	server := grpcDelivery.NewServer(cfg.ServicePort)
+	server := grpcDelivery.NewServer(cfg.ServicePort, authUC)
 	server.Start()
 }
